@@ -19,19 +19,30 @@ class Program
 
         var password = File.ReadAllText(passwordFile).Trim();
         Console.WriteLine($"✓ Password loaded from file");
+        Console.WriteLine($"  Password length: {password.Length} characters");
+        Console.WriteLine($"  First 4 chars: {(password.Length >= 4 ? password.Substring(0, 4) : password)}...");
 
         // Create OBS WebSocket client
         var obs = new OBSWebsocket();
+        var connectionComplete = new TaskCompletionSource<bool>();
 
         // Setup event handlers
         obs.Connected += (sender, e) =>
         {
             Console.WriteLine("✓ Connected to OBS WebSocket");
+            connectionComplete.TrySetResult(true);
         };
 
         obs.Disconnected += (sender, e) =>
         {
-            Console.WriteLine("✗ Disconnected from OBS WebSocket");
+            var disconnectInfo = e as OBSWebsocketDotNet.Communication.ObsDisconnectionInfo;
+            Console.WriteLine($"✗ Disconnected from OBS WebSocket");
+            if (disconnectInfo != null)
+            {
+                Console.WriteLine($"  Reason: {disconnectInfo.DisconnectReason}");
+                //Console.WriteLine($"  Type: {disconnectInfo.Type}");
+            }
+            connectionComplete.TrySetResult(false);
         };
 
         try
@@ -40,8 +51,15 @@ class Program
             Console.WriteLine("\nConnecting to OBS at ws://localhost:4455...");
             obs.ConnectAsync("ws://localhost:4455", password);
 
-            // Wait a moment for connection
-            await Task.Delay(2000);
+            // Wait for connection to fully establish (with timeout)
+            var timeoutTask = Task.Delay(5000);
+            var completedTask = await Task.WhenAny(connectionComplete.Task, timeoutTask);
+
+            if (completedTask == timeoutTask || !await connectionComplete.Task)
+            {
+                Console.WriteLine("✗ Connection timeout or failed");
+                return;
+            }
 
             if (!obs.IsConnected)
             {
