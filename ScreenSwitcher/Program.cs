@@ -13,43 +13,31 @@ class Program
         var currentScene = obs.GetCurrentScene();
         var sceneItems = obs.GetSceneItems(currentScene);
 
-        // Build lookup table: source name -> item ID
-        var sourceToId = sceneItems.ToDictionary(x => x.SourceName, x => x.ItemId);
+        var sourceToId = sceneItems
+            .Where(x => x.SourceName.StartsWith("T-Monitor-"))
+            .ToDictionary(x => x.SourceName, x => x.ItemId);
 
-        // Configure monitor mappings (TODO: Replace these handles with your actual ones)
-        var config = new MonitorConfig();
-        config.AddMapping(new IntPtr(65626), "Display-0-0");
-        config.AddMapping(new IntPtr(65634), "Display-0-1");
-        config.AddMapping(new IntPtr(65624), "Display-1-1");
-        config.AddMapping(new IntPtr(65630), "Display-2-0");
-        config.AddMapping(new IntPtr(65628), "Display-2-2");
-        config.AddMapping(new IntPtr(65632), "Display-3-0");
-        config.AddMapping(new IntPtr(1604914021), "Display2-1");
-
-        Console.WriteLine("ScreenSwitcher running... Move your mouse between monitors!");
-        Console.WriteLine("Press Ctrl+C to exit\n");
+        Console.WriteLine($"Found {sourceToId.Count} T-Monitor sources");
+        Console.WriteLine("ScreenSwitcher running... Move your mouse between monitors!\n");
 
         var notifier = new ScreenChangeNotifier();
 
-        notifier.ScreenChanged += (monitorHandle) =>
+        notifier.ScreenChanged += (monitorInfo) =>
         {
-            var activeSource = config.GetSourceForMonitor(monitorHandle);
-            if (activeSource == null) return;
+            var activeSource = $"T-Monitor-{monitorInfo.DisplayNumber}";
 
-            // Hide all toggle sources
-            foreach (var toggleSource in config.GetAllToggleSources())
+            Console.WriteLine($"{monitorInfo} -> {activeSource}");
+
+            // Hide all T-Monitor sources
+            foreach (var (sourceName, itemId) in sourceToId)
             {
-                if (sourceToId.TryGetValue(toggleSource, out var itemId))
-                {
-                    obs.SetSourceVisible(currentScene, itemId, false);
-                }
+                obs.SetSourceVisible(currentScene, itemId, false);
             }
 
-            // Show only the active source
+            // Show active monitor source
             if (sourceToId.TryGetValue(activeSource, out var activeItemId))
             {
                 obs.SetSourceVisible(currentScene, activeItemId, true);
-                Console.WriteLine($"Switched to: {activeSource}");
             }
         };
 
