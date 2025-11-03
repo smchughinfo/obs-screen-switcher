@@ -4,6 +4,8 @@ class Program
 {
     static async Task Main(string[] args)
     {
+        // OBS Test (commented out)
+        /*
         var passwordFile = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "obs-password.txt");
         var password = File.ReadAllText(passwordFile).Trim();
 
@@ -18,7 +20,6 @@ class Program
             Console.WriteLine($"{item.SourceName} (ID: {item.ItemId})");
         }
 
-        // Test toggle first source
         var firstSource = sceneItems[0];
         var currentState = obs.GetSourceVisible(currentScene, firstSource.ItemId);
 
@@ -27,5 +28,19 @@ class Program
         obs.SetSourceVisible(currentScene, firstSource.ItemId, currentState);
 
         obs.Disconnect();
+        */
+
+        // Screen Change Test
+        Console.WriteLine("Monitoring screen changes... Move your mouse between monitors!");
+        Console.WriteLine("Press Ctrl+C to exit\n");
+
+        var notifier = new ScreenChangeNotifier();
+
+        notifier.ScreenChanged += (monitorHandle) =>
+        {
+            Console.WriteLine($"Screen changed! Monitor handle: {monitorHandle}");
+        };
+
+        await notifier.StartAsync(100);
     }
 }

@@ -1,4 +1,5 @@
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 
 namespace ScreenSwitcher;
 
