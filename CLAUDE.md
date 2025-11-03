@@ -27,9 +27,11 @@
 ```
 /ScreenSwitcher/
 ├── ScreenSwitcher/          # Main console application
-│   ├── Program.cs           # Entry point and main loop
+│   ├── Program.cs           # Entry point (minimal)
+│   ├── OBSService.cs        # OBS WebSocket communication
 │   └── ScreenSwitcher.csproj
 ├── SessionMemory/           # Development session logs
+├── obs-password.txt         # OBS WebSocket password (NOT in git)
 ├── .gitignore               # .NET specific gitignore
 ├── CLAUDE.md               # This file
 └── README.md               # Project documentation
@@ -137,16 +139,12 @@ When requested to save session memory:
 ## Development Guidelines
 
 ### Code Style
-- Use async/await for OBS WebSocket communication
-- Implement proper error handling and logging
-- Clean shutdown on Ctrl+C (CancellationToken)
-- Avoid busy-waiting - use Task.Delay for polling
+- **Minimal code, assume success**: Remove unnecessary logging, try/catch blocks, and error messages. Let things fail naturally.
+- **Separation of concerns**: Keep Program.cs minimal. Move logic into dedicated service classes.
+- **Use async/await** for OBS WebSocket communication
+- **Clean shutdown** on Ctrl+C (CancellationToken)
+- **Avoid busy-waiting** - use Task.Delay for polling
 
-### Error Handling
-- Graceful degradation if OBS not running
-- Reconnection logic for WebSocket disconnects
-- Validation of monitor mappings at startup
-- Clear error messages for configuration issues
 
 ### Performance Considerations
 - Minimize Windows API calls
