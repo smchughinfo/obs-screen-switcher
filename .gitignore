@@ -400,3 +400,7 @@ FodyWeavers.xsd
 
 # Session Memory files (optional - uncomment if you want to exclude from git)
 # SessionMemory/
+
+# ScreenSwitcher specific - DO NOT COMMIT
+obs-password.txt
+config.json
